@@ -298,6 +298,7 @@
             <button class="tab" onclick="showTab('orders')">Orders</button>
             <button class="tab" onclick="showTab('ordered')">Yesterday</button>
             <button class="tab" onclick="showTab('setup')">Setup</button>
+            <button class="tab" onclick="showTab('backup')">Backup</button>
         </div>
 
         <div class="content">
@@ -335,6 +336,21 @@
                 
                 <div id="suppliers-list">
                     <div class="empty">No suppliers yet</div>
+                </div>
+            </div>
+
+            <div id="backup-tab" class="tab-content">
+                <h3>Export Your Setup</h3>
+                <p>Save all your suppliers to share or backup:</p>
+                <button class="btn" onclick="exportData()">Download Backup File</button>
+                
+                <h3 style="margin-top: 20px;">Import Setup</h3>
+                <p>Load suppliers from a backup file:</p>
+                <input type="file" id="import-file" accept=".json,.txt" style="margin-bottom: 10px;" />
+                <button class="btn" onclick="importData()">Import Suppliers</button>
+                
+                <div id="import-status" style="margin-top: 10px; display: none;">
+                    <div id="import-message"></div>
                 </div>
             </div>
         </div>
