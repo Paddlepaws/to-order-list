@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventory Tracker (Refactored & Fixed)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            overflow: visible;
+        }
+
+        .header {
+            background: #333;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            background: #eee;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            color: #666;
+            min-width: 80px;
+        }
+
+        .tab.active {
+            background: white;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 15px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .btn:active {
+            background: #0056b3;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-copy {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .btn-ordered {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .suggestions {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            position: absolute;
+            width: calc(100% - 30px);
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .suggestion {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .suggestion:hover {
+            background: #f0f0f0;
+        }
+
+        .suggestion:last-child {
+            border-bottom: none;
+        }
+
+        .supplier-section {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .supplier-header {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .supplier-info {
+            flex: 1;
+        }
+
+        .supplier-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .supplier-contact {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .item {
+            padding: 10px 12px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .supplier-card {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .supplier-buttons-card {
+            margin-top: 10px;
+        }
+
+        .btn-edit {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+
+        .supplier-items {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+
+        .recent-add {
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .unknown-supplier {
+            background: #ffc107;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .header {
+                padding: 10px;
+                font-size: 18px;
+            }
+
+            .tab {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+
+            .content {
+                padding: 10px;
+            }
+
+            .supplier-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .supplier-buttons {
+                margin-top: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Inventory Tracker</h1>
+        </div>
+
+        <div class="tabs">
+            <!-- pass the button element into showTab so it can add the active class reliably -->
+            <button class="tab active" onclick="showTab('quick', this)">Add Item</button>
+            <button class="tab" onclick="showTab('orders', this)">Orders</button>
+            <button class="tab" onclick="showTab('ordered', this)">Yesterday</button>
+            <button class="tab" onclick="showTab('setup', this)">Setup</button>
+            <button class="tab" onclick="showTab('backup', this)">Backup</button>
+        </div>
+
+        <div class="content">
+            <div id="quick-tab" class="tab-content active">
+                <div class="input-container">
+                    <input type="text" id="quick-input" placeholder="Type: butter, cod, etc..." autocomplete="off" />
+                    <div id="suggestions" class="suggestions"></div>
+                </div>
+                <button class="btn" onclick="addItem()">Add</button>
+                
+                <div id="recent" style="display: none;">
+                    <div id="recent-msg" class="recent-add"></div>
+                </div>
+            </div>
+
+            <div id="orders-tab" class="tab-content">
+                <div id="orders-content">
+                    <div class="empty">No items to order yet</div>
+                </div>
+            </div>
+
+            <div id="ordered-tab" class="tab-content">
+                <div id="ordered-content">
+                    <div class="empty">No orders from yesterday</div>
+                </div>
+                <button class="btn btn-danger" onclick="clearOrderedItems()" style="margin-top: 10px;">Clear Yesterday's Orders</button>
+            </div>
+
+            <div id="setup-tab" class="tab-content">
+                <input type="text" id="supplier-name" placeholder="Supplier name" />
+                <input type="text" id="supplier-phone" placeholder="Phone number" />
+                <input type="text" id="supplier-contact" placeholder="Contact person" />
+                <textarea id="supplier-items" placeholder="Items (comma separated): cod, salmon, shrimp" rows="3"></textarea>
+                <button class="btn" onclick="addSupplier()">Add Supplier</button>
+                
+                <div id="suppliers-list">
+                    <div class="empty">No suppliers yet</div>
+                </div>
+            </div>
+
+            <div id="backup-tab" class="tab-content">
+                <h3>Export Your Setup</h3>
+                <p>Save all your suppliers to share or backup:</p>
+                <button class="btn" onclick="exportData()">Download Backup File</button>
+                
+                <h3 style="margin-top: 20px;">Import Setup</h3>
+                <p>Load suppliers from a backup file:</p>
+                <input type="file" id="import-file" accept=".json,.txt" style="margin-bottom: 10px;" />
+                <button class="btn" onclick="importData()">Import Suppliers</button>
+                
+                <div id="import-status" style="margin-top: 10px; display: none;">
+                    <div id="import-message"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /*****************************************************************
+         * DATA ARRAYS (single source of truth)
+         * - suppliers: list of supplier objects {id, name, phone, contact, items:[]}
+         * - neededItems: quick-capture items waiting to be ordered {id, name, supplierId, supplierName}
+         * - orderedItems: groups representing an order sent to a supplier {id, supplierId, supplierName, items:[], orderedDate}
+         *****************************************************************/
+        let suppliers = [];
+        let neededItems = [];
+        let orderedItems = [];
+
+        /*******************************
+         * INITIAL LOAD
+         *******************************/
+        window.onload = function() {
+            loadData();
+            renderAll();
+        };
+
+        /*******************************
+         * TAB HANDLING
+         *******************************/
+        function showTab(tabName, btn) {
+            // Remove active classes
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // Add active to clicked button (btn supplied by onclick) and show tab
+            if (btn && btn.classList) btn.classList.add('active');
+            const el = document.getElementById(tabName + '-tab');
+            if (el) el.classList.add('active');
+        }
+
+        /*******************************
+         * UTILITY: find a supplier by an item name (simple fuzzy includes)
+         *******************************/
+        function findSupplier(itemName) {
+            const search = (itemName || '').toLowerCase().trim();
+            for (let supplier of suppliers) {
+                for (let item of supplier.items) {
+                    if (item.toLowerCase().includes(search) || search.includes(item.toLowerCase())) {
+                        return supplier;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /*******************************
+         * SUGGESTIONS (used by quick-input)
+         *******************************/
+        function showSuggestions() {
+            const input = document.getElementById('quick-input');
+            const suggestionsDiv = document.getElementById('suggestions');
+            const query = (input.value || '').toLowerCase().trim();
+
+            if (!query) {
+                suggestionsDiv.style.display = 'none';
+                suggestionsDiv.innerHTML = '';
+                return;
+            }
+
+            // Build DOM nodes (avoid string-injection issues)
+            suggestionsDiv.innerHTML = '';
+            let found = 0;
+
+            suppliers.forEach(supplier => {
+                supplier.items.forEach(item => {
+                    if (item.toLowerCase().includes(query)) {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion';
+                        div.textContent = `${item} (${supplier.name})`;
+                        div.addEventListener('click', function() {
+                            selectItem(item);
+                        });
+                        suggestionsDiv.appendChild(div);
+                        found++;
+                    }
+                });
+            });
+
+            suggestionsDiv.style.display = found > 0 ? 'block' : 'none';
+        }
+
+        function selectItem(item) {
+            document.getElementById('quick-input').value = item;
+            document.getElementById('suggestions').style.display = 'none';
+            addItem();
+        }
+
+        /*******************************
+         * QUICK ENTRY: add item to neededItems
+         *******************************/
+        function addItem() {
+            const input = document.getElementById('quick-input');
+            const itemName = (input.value || '').trim();
+            if (!itemName) return;
+
+            const supplier = findSupplier(itemName);
+            const supplierId = supplier ? supplier.id : null;
+            const supplierName = supplier ? supplier.name : 'Unknown';
+
+            // Prevent duplicates for same supplier
+            const exists = neededItems.find(it => it.name.toLowerCase() === itemName.toLowerCase() && it.supplierId === supplierId);
+
+            if (!exists) {
+                neededItems.push({ id: Date.now(), name: itemName, supplierId: supplierId, supplierName: supplierName });
+                saveData();
+                showRecent(`Added "${itemName}" → ${supplierName}`);
+            }
+
+            input.value = '';
+            document.getElementById('suggestions').style.display = 'none';
+            renderOrders();
+            input.focus();
+        }
+
+        function showRecent(message) {
+            const recentDiv = document.getElementById('recent');
+            const msgDiv = document.getElementById('recent-msg');
+            msgDiv.textContent = message;
+            recentDiv.style.display = 'block';
+            setTimeout(() => { recentDiv.style.display = 'none'; }, 1600);
+        }
+
+        function removeItem(id) {
+            neededItems = neededItems.filter(item => item.id !== id);
+            saveData();
+            renderOrders();
+        }
+
+        /*******************************
+         * MARK AS ORDERED (moves neededItems into orderedItems grouped by supplier)
+         *******************************/
+        function markAsOrdered(supplierId) {
+            const itemsToMove = neededItems.filter(item => item.supplierId == supplierId);
+            const supplier = suppliers.find(s => s.id == supplierId);
+
+            if (itemsToMove.length > 0 && supplier) {
+                const orderGroup = {
+                    id: Date.now(),
+                    supplierId: supplierId,
+                    supplierName: supplier.name,
+                    supplierPhone: supplier.phone,
+                    supplierContact: supplier.contact,
+                    items: itemsToMove.map(item => item.name),
+                    orderedDate: new Date().toLocaleDateString()
+                };
+
+                orderedItems.push(orderGroup);
+                neededItems = neededItems.filter(item => item.supplierId != supplierId);
+                saveData();
+                renderOrders();
+                renderOrdered();
+            }
+        }
+
+        function copySupplierList(supplierId) {
+            const items = neededItems.filter(item => item.supplierId == supplierId);
+            const supplier = suppliers.find(s => s.id == supplierId);
+
+            if (items.length > 0 && supplier) {
+                const itemNames = items.map(item => item.name).join(', ');
+                const textToCopy = `${supplier.name}: ${itemNames}${supplier.phone ? ` (${supplier.phone})` : ''}`;
+
+                // Copy to clipboard
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        showRecent(`Copied: ${supplier.name} list`);
+                    }).catch(() => { showRecent(`${supplier.name}: ${itemNames}`); });
+                } else {
+                    // fallback
+                    showRecent(`${supplier.name}: ${itemNames}`);
+                }
+            }
+        }
+
+        function clearOrderedItems() {
+            if (confirm("Clear all yesterday's orders?")) {
+                orderedItems = [];
+                saveData();
+                renderOrdered();
+            }
+        }
+
+        /*******************************
+         * SUPPLIER CRUD
+         *******************************/
+        function addSupplier() {
+            const name = document.getElementById('supplier-name').value.trim();
+            const phone = document.getElementById('supplier-phone').value.trim();
+            const contact = document.getElementById('supplier-contact').value.trim();
+            const itemsText = document.getElementById('supplier-items').value.trim();
+
+            if (!name || !itemsText) {
+                alert('Need supplier name and items');
+                return;
+            }
+
+            const items = itemsText.split(',').map(item => item.trim()).filter(item => item);
+
+            suppliers.push({ id: Date.now(), name, phone, contact, items });
+
+            saveData();
+
+            // Clear form
+            document.getElementById('supplier-name').value = '';
+            document.getElementById('supplier-phone').value = '';
+            document.getElementById('supplier-contact').value = '';
+            document.getElementById('supplier-items').value = '';
+
+            renderSuppliers();
+        }
+
+        function editSupplier(id) {
+            const supplier = suppliers.find(s => s.id === id);
+            if (!supplier) return;
+
+            // Fill form with existing data
+            document.getElementById('supplier-name').value = supplier.name;
+            document.getElementById('supplier-phone').value = supplier.phone || '';
+            document.getElementById('supplier-contact').value = supplier.contact || '';
+            document.getElementById('supplier-items').value = supplier.items.join(', ');
+
+            // Delete the old supplier (we'll add a new one when user clicks Add)
+            suppliers = suppliers.filter(s => s.id !== id);
+
+            // Update any existing needed items to point to unknown while editing
+            neededItems.forEach(item => {
+                if (item.supplierId === id) {
+                    item.supplierId = null;
+                    item.supplierName = 'Unknown';
+                }
+            });
+
+            saveData();
+            renderAll();
+            document.getElementById('supplier-name').focus();
+        }
+
+        function deleteSupplier(id) {
+            if (!confirm('Delete supplier?')) return;
+            suppliers = suppliers.filter(s => s.id !== id);
+            neededItems = neededItems.filter(item => item.supplierId !== id);
+            saveData();
+            renderAll();
+        }
+
+        function clearAllItems() {
+            if (confirm('Clear all items?')) {
+                neededItems = [];
+                saveData();
+                renderOrders();
+            }
+        }
+
+        /*******************************
+         * RENDERING: Orders / Suppliers / Ordered
+         *******************************/
+        function renderOrders() {
+            const container = document.getElementById('orders-content');
+
+            if (neededItems.length === 0) {
+                container.innerHTML = '<div class="empty">No items to order yet</div>';
+                return;
+            }
+
+            // Group by supplierId (null/undefined -> 'unknown')
+            const grouped = {};
+            neededItems.forEach(item => {
+                const key = item.supplierId || 'unknown';
+                if (!grouped[key]) grouped[key] = [];
+                grouped[key].push(item);
+            });
+
+            let html = '<button class="btn btn-danger" onclick="clearAllItems()">Clear All</button>';
+
+            Object.keys(grouped).forEach(key => {
+                const items = grouped[key];
+                const supplier = suppliers.find(s => s.id == key);
+
+                if (supplier) {
+                    html += `
+                        <div class="supplier-section">
+                            <div class="supplier-header">
+                                <div class="supplier-info">
+                                    ${supplier.name}
+                                    <div class="supplier-contact">
+                                        ${supplier.phone || ''} ${supplier.contact || ''}
+                                    </div>
+                                </div>
+                                <div class="supplier-buttons">
+                                    <button class="btn-copy" onclick="copySupplierList(${supplier.id})">Copy</button>
+                                    <button class="btn-ordered" onclick="markAsOrdered(${supplier.id})">Ordered</button>
+                                </div>
+                            </div>
+                            ${items.map(item => `
+                                <div class="item">
+                                    <span>${escapeHtml(item.name)}</span>
+                                    <button class="remove-btn" onclick="removeItem(${item.id})">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    // unknown supplier group
+                    html += `
+                        <div class="supplier-section">
+                            <div class="supplier-header unknown-supplier">
+                                <div class="supplier-info">Unknown Supplier</div>
+                            </div>
+                            ${items.map(item => `
+                                <div class="item">
+                                    <span>${escapeHtml(item.name)}</span>
+                                    <button class="remove-btn" onclick="removeItem(${item.id})">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderOrdered() {
+            const container = document.getElementById('ordered-content');
+
+            if (orderedItems.length === 0) {
+                container.innerHTML = '<div class="empty">No orders from yesterday</div>';
+                return;
+            }
+
+            const html = orderedItems.map(order => `
+                <div class="supplier-section">
+                    <div class="supplier-header">
+                        <div class="supplier-info">
+                            ${escapeHtml(order.supplierName)} (${escapeHtml(order.orderedDate)})
+                            <div class="supplier-contact">
+                                ${escapeHtml(order.supplierPhone || '')} ${escapeHtml(order.supplierContact || '')}
+                            </div>
+                        </div>
+                    </div>
+                    ${order.items.map(itemName => `
+                        <div class="item">
+                            <span>${escapeHtml(itemName)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderSuppliers() {
+            const container = document.getElementById('suppliers-list');
+
+            if (suppliers.length === 0) {
+                container.innerHTML = '<div class="empty">No suppliers yet</div>';
+                return;
+            }
+
+            const html = suppliers.map(supplier => `
+                <div class="supplier-card">
+                    <strong>${escapeHtml(supplier.name)}</strong>
+                    ${supplier.phone ? `<br>📞 ${escapeHtml(supplier.phone)}` : ''}
+                    ${supplier.contact ? `<br>👤 ${escapeHtml(supplier.contact)}` : ''}
+                    <div class="supplier-items">Items: ${supplier.items.map(i => escapeHtml(i)).join(', ')}</div>
+                    <div class="supplier-buttons-card">
+                        <button class="btn-edit" onclick="editSupplier(${supplier.id})">Edit</button>
+                        <button class="remove-btn" onclick="deleteSupplier(${supplier.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        function renderAll() {
+            renderOrders();
+            renderSuppliers();
+            renderOrdered();
+        }
+
+        /*******************************
+         * EXPORT / IMPORT (JSON backup)
+         *******************************/
+        function exportData() {
+            const data = { suppliers, neededItems, orderedItems, version: 1 };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'inventory-backup.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() {
+            const fileInput = document.getElementById('import-file');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    // Simple validation
+                    suppliers = Array.isArray(data.suppliers) ? data.suppliers : [];
+                    neededItems = Array.isArray(data.neededItems) ? data.neededItems : [];
+                    orderedItems = Array.isArray(data.orderedItems) ? data.orderedItems : [];
+                    saveData();
+                    renderAll();
+                    document.getElementById('import-message').textContent = 'Import successful!';
+                } catch (err) {
+                    document.getElementById('import-message').textContent = 'Import failed: ' + err;
+                }
+                document.getElementById('import-status').style.display = 'block';
+            };
+            reader.readAsText(file);
+        }
+
+        /*******************************
+         * STORAGE (localStorage)
+         *******************************/
+        function saveData() {
+            try {
+                localStorage.setItem('suppliers', JSON.stringify(suppliers));
+                localStorage.setItem('neededItems', JSON.stringify(neededItems));
+                localStorage.setItem('orderedItems', JSON.stringify(orderedItems));
+            } catch (err) {
+                console.error('Save error', err);
+            }
+        }
+
+        function loadData() {
+            try {
+                const s = localStorage.getItem('suppliers');
+                const n = localStorage.getItem('neededItems');
+                const o = localStorage.getItem('orderedItems');
+                suppliers = s ? JSON.parse(s) : [];
+                neededItems = n ? JSON.parse(n) : [];
+                orderedItems = o ? JSON.parse(o) : [];
+            } catch (err) {
+                console.error('Load error', err);
+                suppliers = [];
+                neededItems = [];
+                orderedItems = [];
+            }
+        }
+
+        /*******************************
+         * EVENT LISTENERS
+         *******************************/
+        // wire up quick input suggestion + enter key
+        document.getElementById('quick-input').addEventListener('input', showSuggestions);
+        document.getElementById('quick-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') addItem(); });
+
+        // hide suggestions if clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.input-container')) {
+                document.getElementById('suggestions').style.display = 'none';
+            }
+        });
+
+        /*******************************
+         * HELPER: simple HTML escape for safety in templates
+         *******************************/
+        function escapeHtml(str) {
+            if (str === undefined || str === null) return '';
+            return String(str).replace(/[&<>"']/g, function(ch) {
+                return ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                })[ch];
+            });
+        }
+    </script>
+</body>
+</html>
